@@ -1,0 +1,3 @@
+FROM mariadb:10.4
+RUN mkdir -p ./sqlbackups
+COPY ./sqlbackups/ /docker-entrypoint-initdb.d/

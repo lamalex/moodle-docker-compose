@@ -1,0 +1,47 @@
+version: "3.7"
+
+services:
+    web:
+        container_name: moodle-nginx-ng
+        image: nginx:1.17-alpine
+        restart: unless-stopped
+        ports:
+            - 80:80
+        volumes: 
+            - ./moodle:/var/www/moodle
+            - ./nginx.conf.d:/etc/nginx/conf.d
+            - ${MOODLEDATA_DIR}:/var/moodledata
+        depends_on:
+            - php
+            - mariadb
+        environment:
+            VIRTUAL_HOST: ${DOMAINS}
+            LETSENCRYPT_HOST: ${DOMAINS}
+            LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    php:
+        container_name: moodle-php-ng
+        build:
+            context: .
+            dockerfile: Dockerfile_php
+        restart: unless-stopped
+        volumes:
+            - ./etc.php/:/usr/local/etc/php/
+    mariadb:
+        container_name: moodle-mariadb-ng
+        build:
+            context: .
+            dockerfile: Dockerfile_mariadb
+        restart: unless-stopped
+        ports:
+            - 3306:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        volumes:
+            - ./mysql.conf.d:/etc/mysql/conf.d
+            - ./database:/var/lib/mysql
+
+    #memcached:
+        #image: memcached:1.6-alpine
